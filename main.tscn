@@ -24,7 +24,9 @@ grow_vertical = 2
 [node name="RichTextLabel" type="RichTextLabel" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+scroll_following = true
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+scroll_following = true

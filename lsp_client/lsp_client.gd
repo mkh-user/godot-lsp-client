@@ -9,20 +9,54 @@ signal message_sent(msg: String)
 
 var connection := StreamPeerTCP.new()
 var message_id := 1
+var buffer := PackedByteArray()
+var is_connected_to_server := false
 
-func _process(_delta):
+func _process(_delta) -> void:
+	connection.poll()
 	if connection.get_status() in [StreamPeerTCP.STATUS_ERROR, StreamPeerTCP.STATUS_NONE]:
 		return
-	connection.poll()
 	if connection.get_available_bytes() > 0:
-		var resp = connection.get_utf8_string(connection.get_available_bytes())
-		print("[LSPClient] Response passed to client")
-		var resps := resp.split("Content-Length:", false)
-		for r in resps:
-			response.emit("Content-Length:" + r)
+		buffer.append_array(connection.get_data(connection.get_available_bytes()))
+		print_rich("[color=webgray]Process buffer (size: %d)...[/color]" % buffer.size())
+		_process_buffer()
+
+
+func _process_buffer() -> void:
+	var header_end := -1
+	for i in range(buffer.size() - 3):
+		if buffer[i] == 13 and buffer[i + 1] == 10 and buffer[i + 2] == 13 and buffer[i + 3] == 10:
+			header_end = i
+			break
+
+	if header_end == -1:
+		return
+	var header := buffer.slice(0, header_end).get_string_from_ascii()
+
+	var content_length := 0
+	for line in header.split("\r\n", false):
+		if line.begins_with("Content-Length:"):
+			content_length = int(line.replace("Content-Length:", "").strip_edges())
+			break
+
+	if content_length == 0:
+		print("[LSPClient] Invalid Content-Length")
+		buffer = buffer.slice(header_end + 4, buffer.size())
+		return
+
+	if buffer.size() < header_end + 4 + content_length:
+		return
+
+	var msg_data := buffer.slice(header_end + 4, header_end + 4 + content_length)
+	var msg_text := msg_data.get_string_from_utf8()
+
+	response.emit(msg_text)
+
+	buffer = buffer.slice(header_end + 4 + content_length, buffer.size())
 
 
 func connect_to_server(host: String, port: int) -> void:
+	connected.connect(func(): is_connected_to_server = true)
 	print("[LSPClient] Connection requested: " + host + ":" + str(port))
 	var err = connection.connect_to_host(host, port)
 	if err:
@@ -73,6 +107,8 @@ func send_did_open(uri: String, language_id: String, text: String) -> void:
 
 
 func send_message(msg: Dictionary) -> void:
+	while not is_connected_to_server:
+		await get_tree().create_timer(0.1).timeout
 	var json := JSON.stringify(msg)
 	var header := "Content-Length: %d\r\n\r\n" % json.to_utf8_buffer().size()
 	print("[LSPClient] Send message to server: " + msg["method"])
