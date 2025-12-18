@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://blve3vl77ypws" path="res://main.gd" id="1_ig7tw"]
 
-[node name="Control" type="Control"]
+[node name="Control" type="Control" node_paths=PackedStringArray("client_masseges", "server_messages")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,3 +10,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ig7tw")
+client_masseges = NodePath("HBoxContainer/RichTextLabel")
+server_messages = NodePath("HBoxContainer/RichTextLabel2")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
