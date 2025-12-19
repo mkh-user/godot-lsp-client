@@ -16,8 +16,8 @@ func _process(_delta):
 	connection.poll()
 	if connection.get_available_bytes() > 0:
 		var resp = connection.get_utf8_string(connection.get_available_bytes())
-		print("[LSPClient] Response passed to client")
 		var resps := resp.split("Content-Length:", false)
+		print("[LSPClient] %d Response(s) received" % resps.size())
 		for r in resps:
 			response.emit("Content-Length:" + r)
 
