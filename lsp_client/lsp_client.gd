@@ -112,7 +112,6 @@ func send_message(msg: Dictionary) -> void:
 	var json := JSON.stringify(msg)
 	var header := "Content-Length: %d\r\n\r\n" % json.to_utf8_buffer().size()
 	print("[LSPClient] Send message to server: " + msg["method"])
-	#print("Send message to LSP: " + header + json)
 	var ful_msg := header.to_ascii_buffer() + json.to_utf8_buffer()
 	connection.put_data(ful_msg)
 	message_sent.emit(header + json)
